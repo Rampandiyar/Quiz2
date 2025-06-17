@@ -2,10 +2,16 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Move dotenv config up to ensure it's loaded before anything else
+dotenv.config();
 
 const app = express();
 
+// ✅ Simple test route
+app.get('/', (req, res) => {
+    res.send('Backend is running ✅');
+});
+
+// Error handler
 app.use((err, req, res, next) => {
     const statusCode = err.status || 500;
     const message = err.message || "Something went wrong";

@@ -21,7 +21,7 @@ router.use('/categories', categoryRoutes);
 router.use('/notifications', notificationRoutes);
 
 // ✅ Simple test route
-router.get('/', (req, res) => {
+app.get('/', (req, res) => {
     res.send('Backend is running ✅');
 });
 

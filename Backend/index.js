@@ -1,10 +1,25 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-
+import express from 'express';
+import authRoutes from './Routes/authRoutes.js';
+import userRoutes from './Routes/userRoutes.js';
+import quizRoutes from './Routes/quizRoutes.js';
+import resultRoutes from './Routes/resultRoutes.js';
+import adminRoutes from './Routes/adminRoutes.js';
+import categoryRoutes from './Routes/categoryRoutes.js';
+import notificationRoutes from './Routes/notificationRoutes.js';
 dotenv.config();
-
+const router = express.Router();
 const app = express();
+
+router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
+router.use('/quizzes', quizRoutes);
+router.use('/results', resultRoutes);
+router.use('/admin', adminRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/notifications', notificationRoutes);
 
 // ✅ Simple test route
 app.get('/', (req, res) => {

@@ -12,7 +12,10 @@ import { fileDelete, fileUpload } from '../utils/fileUpload.js';
 // @access  Public
 export const registerUser = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, password, registrationNumber, department, year } = req.body;
+    const { firstName, lastName, email, password, registrationNumber, department, year
+
+      
+     } = req.body;
 
     // Check if user exists
     const existingUser = await User.findOne({ 

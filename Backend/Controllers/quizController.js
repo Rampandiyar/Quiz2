@@ -1,20 +1,18 @@
-import Quiz from '../models/Quiz.js';
+import Quiz from '../Models/Quiz.js';
 import QuizSettings from '../Models/QuizSettings.js';
-import Category from '../Models/Category.js';
-import QuizAttempt from '../models/QuizAttempt.js';
+import QuizAttempt from '../Models/QuizAttempt.js';
+import { AppError } from '../Utils/errorHandler.js';
 
-export const createQuiz = async (req, res) => {
+export const createQuiz = async (req, res, next) => {
   try {
-    const { title, description, questions, category, duration, passingScore } = req.body;
+    const { title, questions, duration, passingScore } = req.body;
     
     const quiz = new Quiz({
       title,
-      description,
       questions,
-      createdBy: req.user.id,
-      category,
       duration,
-      passingScore
+      passingScore,
+      createdBy: req.user.id
     });
     
     await quiz.save();
@@ -23,190 +21,170 @@ export const createQuiz = async (req, res) => {
     const settings = new QuizSettings({
       quiz: quiz._id,
       shuffleQuestions: false,
-      shuffleAnswers: false,
-      showCorrectAnswers: false,
-      showResults: true,
-      allowedAttempts: 1
+      shuffleAnswers: false
     });
     
     await settings.save();
     
     res.status(201).json(quiz);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const getQuizzes = async (req, res) => {
+export const getQuizzes = async (req, res, next) => {
   try {
-    const quizzes = await Quiz.find()
-      .populate('createdBy', 'firstName lastName')
-      .populate('category', 'name');
+    const quizzes = await Quiz.find({ isPublished: true })
+      .populate('createdBy', 'firstName lastName');
     res.json(quizzes);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const getQuiz = async (req, res) => {
+export const getQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findById(req.params.id)
-      .populate('createdBy', 'firstName lastName')
-      .populate('category', 'name');
+      .populate('createdBy', 'firstName lastName');
     
     if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
+      return next(new AppError('Quiz not found', 404));
     }
     
     res.json(quiz);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const updateQuiz = async (req, res) => {
+export const updateQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { new: true, runValidators: true }
     );
     
     if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
+      return next(new AppError('Quiz not found', 404));
     }
     
     res.json(quiz);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const deleteQuiz = async (req, res) => {
+export const deleteQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findByIdAndDelete(req.params.id);
+    
     if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
+      return next(new AppError('Quiz not found', 404));
     }
     
     // Clean up related data
     await QuizSettings.deleteOne({ quiz: quiz._id });
     await QuizAttempt.deleteMany({ quiz: quiz._id });
     
-    res.json({ message: 'Quiz deleted successfully' });
+    res.status(204).end();
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const startQuiz = async (req, res) => {
+export const startQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
-    }
+    if (!quiz) return next(new AppError('Quiz not found', 404));
     
-    // Check if user has already attempted this quiz
     const existingAttempt = await QuizAttempt.findOne({
       user: req.user.id,
       quiz: quiz._id,
       status: { $ne: 'submitted' }
     });
     
-    if (existingAttempt) {
-      return res.json(existingAttempt);
-    }
+    if (existingAttempt) return res.json(existingAttempt);
     
     const attempt = new QuizAttempt({
       user: req.user.id,
       quiz: quiz._id,
-      startedAt: new Date(),
-      status: 'in-progress'
+      startedAt: new Date()
     });
     
     await attempt.save();
-    
     res.status(201).json(attempt);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const submitQuiz = async (req, res) => {
+export const submitQuiz = async (req, res, next) => {
   try {
     const { answers } = req.body;
     
     const attempt = await QuizAttempt.findById(req.params.attemptId);
-    if (!attempt) {
-      return res.status(404).json({ message: 'Attempt not found' });
-    }
+    if (!attempt) return next(new AppError('Attempt not found', 404));
     
     if (attempt.user.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-    
-    if (attempt.status === 'submitted') {
-      return res.status(400).json({ message: 'Quiz already submitted' });
+      return next(new AppError('Unauthorized', 401));
     }
     
     const quiz = await Quiz.findById(attempt.quiz);
-    if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
-    }
+    if (!quiz) return next(new AppError('Quiz not found', 404));
     
-    // Calculate score
-    let totalScore = 0;
+    let score = 0;
     const processedAnswers = answers.map(answer => {
-      const question = quiz.questions.id(answer.question);
-      if (!question) return null;
-      
+      const question = quiz.questions.id(answer.questionId);
       const isCorrect = question.correctAnswer === answer.selectedAnswer;
-      const pointsAwarded = isCorrect ? question.points : 0;
-      totalScore += pointsAwarded;
+      if (isCorrect) score += question.points;
       
       return {
-        question: answer.question,
+        question: answer.questionId,
         selectedAnswer: answer.selectedAnswer,
         isCorrect,
-        pointsAwarded,
-        timeTaken: answer.timeTaken || 0
+        points: isCorrect ? question.points : 0
       };
-    }).filter(Boolean);
+    });
     
     attempt.answers = processedAnswers;
-    attempt.totalScore = totalScore;
-    attempt.percentage = (totalScore / quiz.totalPoints) * 100;
+    attempt.score = score;
     attempt.status = 'submitted';
     attempt.submittedAt = new Date();
-    
     await attempt.save();
     
     res.json(attempt);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const getQuizResults = async (req, res) => {
+export const publishQuiz = async (req, res, next) => {
   try {
-    const results = await QuizAttempt.find({ quiz: req.params.id, status: 'submitted' })
-      .populate('user', 'firstName lastName email')
-      .sort({ submittedAt: -1 });
+    const quiz = await Quiz.findByIdAndUpdate(
+      req.params.id,
+      { isPublished: true, publishedAt: new Date() },
+      { new: true }
+    );
     
-    res.json(results);
+    if (!quiz) return next(new AppError('Quiz not found', 404));
+    res.json(quiz);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const getUserResults = async (req, res) => {
+export const closeQuiz = async (req, res, next) => {
   try {
-    const results = await QuizAttempt.find({ user: req.user.id, status: 'submitted' })
-      .populate('quiz', 'title')
-      .sort({ submittedAt: -1 });
+    const quiz = await Quiz.findByIdAndUpdate(
+      req.params.id,
+      { isPublished: false, closedAt: new Date() },
+      { new: true }
+    );
     
-    res.json(results);
+    if (!quiz) return next(new AppError('Quiz not found', 404));
+    res.json(quiz);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };

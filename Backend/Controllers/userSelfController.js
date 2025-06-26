@@ -2,7 +2,7 @@ import User from '../Models/User.js';
 import Token from '../Models/Token.js';
 import config from '../config.js';
 import jwt from 'jsonwebtoken';
-import { sendEmail } from '../utils/email.js';
+import { sendEmail } from '../Utils/email.js';
 import bcrypt from 'bcrypt';
 
 export const getProfile = async (req, res) => {

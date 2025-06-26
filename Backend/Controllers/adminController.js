@@ -1,72 +1,55 @@
 import User from '../Models/User.js';
 import Admin from '../Models/Admin.js';
-import Role from '../models/Role.js';
+import Role from '../Models/Role.js';
+import { AppError } from '../Utils/errorHandler.js';
 
-export const createAdmin = async (req, res) => {
+export const createAdmin = async (req, res, next) => {
   try {
-    const { userId, staffId, permissions, departmentResponsibility } = req.body;
+    const { userId, permissions } = req.body;
     
-    // Check if user exists
     const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    if (!user) return next(new AppError('User not found', 404));
     
-    // Check if user is already an admin
-    const existingAdmin = await Admin.findOne({ user: userId });
-    if (existingAdmin) {
-      return res.status(400).json({ message: 'User is already an admin' });
-    }
+    const adminRole = await Role.findOne({ name: 'admin' });
+    if (!adminRole) return next(new AppError('Admin role not found', 404));
     
-    // Assign admin role if not already assigned
-    const adminRole = await Role.findOne({ name: 'Admin' });
-    if (!adminRole) {
-      return res.status(500).json({ message: 'Admin role not found' });
-    }
-    
-    if (!user.roles.some(role => role.equals(adminRole._id))) {
+    if (!user.roles.includes(adminRole._id)) {
       user.roles.push(adminRole._id);
       await user.save();
     }
     
-    // Create admin
     const admin = new Admin({
       user: userId,
-      staffId,
-      permissions,
-      departmentResponsibility
+      permissions
     });
     
     await admin.save();
-    
     res.status(201).json(admin);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const getAdmins = async (req, res) => {
+export const getAdmins = async (req, res, next) => {
   try {
     const admins = await Admin.find().populate('user', 'firstName lastName email');
     res.json(admins);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const getAdmin = async (req, res) => {
+export const getAdmin = async (req, res, next) => {
   try {
     const admin = await Admin.findById(req.params.id).populate('user', 'firstName lastName email');
-    if (!admin) {
-      return res.status(404).json({ message: 'Admin not found' });
-    }
+    if (!admin) return next(new AppError('Admin not found', 404));
     res.json(admin);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const updateAdmin = async (req, res) => {
+export const updateAdmin = async (req, res, next) => {
   try {
     const admin = await Admin.findByIdAndUpdate(
       req.params.id,
@@ -74,33 +57,74 @@ export const updateAdmin = async (req, res) => {
       { new: true }
     ).populate('user', 'firstName lastName email');
     
-    if (!admin) {
-      return res.status(404).json({ message: 'Admin not found' });
-    }
-    
+    if (!admin) return next(new AppError('Admin not found', 404));
     res.json(admin);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-export const deleteAdmin = async (req, res) => {
+export const deleteAdmin = async (req, res, next) => {
   try {
     const admin = await Admin.findByIdAndDelete(req.params.id);
-    if (!admin) {
-      return res.status(404).json({ message: 'Admin not found' });
-    }
+    if (!admin) return next(new AppError('Admin not found', 404));
     
-    // Remove admin role from user
-    const adminRole = await Role.findOne({ name: 'Admin' });
+    const adminRole = await Role.findOne({ name: 'admin' });
     if (adminRole) {
       await User.findByIdAndUpdate(admin.user, {
         $pull: { roles: adminRole._id }
       });
     }
     
-    res.json({ message: 'Admin deleted successfully' });
+    res.status(204).end();
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
+  }
+};
+
+export const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return next(new AppError('User not found', 404));
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).select('-password');
+    
+    if (!user) return next(new AppError('User not found', 404));
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return next(new AppError('User not found', 404));
+    
+    // Clean up related data
+    await QuizAttempt.deleteMany({ user: user._id });
+    res.status(204).end();
+  } catch (error) {
+    next(error);
   }
 };

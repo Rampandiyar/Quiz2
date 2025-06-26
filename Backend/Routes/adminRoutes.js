@@ -9,7 +9,7 @@ import {
   getUser,
   updateUser,
   deleteUser
-} from '../controllers/adminController.js';
+} from '../Controllers/adminController.js';
 import { authenticate, authorize } from '../Middleware/authMiddleware.js';
 
 const router = express.Router();

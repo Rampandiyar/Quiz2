@@ -4,7 +4,7 @@ import {
   getUserResults,
   getResultDetails,
   exportResults
-} from '../controllers/resultController.js';
+} from '../Controllers/resultController.js';
 import { authenticate, authorize } from '../Middleware/authMiddleware.js';
 
 const router = express.Router();

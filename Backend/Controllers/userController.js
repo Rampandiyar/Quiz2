@@ -1,11 +1,11 @@
 import User from '../Models/User.js';
 import Token from '../Models/Token.js';
-import Role from '../Models/Role.js';
+import Role from '../Models/Roles.js';
 import { sendEmail } from '../Utils/email.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import config from '../config.js';
-import { fileDelete, fileUpload } from '../utils/fileUpload.js';
+ import  {fileDelete, fileUpload} from '../Utils/fileUpload.js';
 
 // @desc    Register user
 // @route   POST /api/users/register

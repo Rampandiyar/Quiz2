@@ -1,5 +1,5 @@
 import Notification from '../Models/Notification.js';
-import { AppError } from '../Utils/errorHandler.js';
+import AppError  from '../Utils/errorHandler.js';
 
 export const getNotifications = async (req, res, next) => {
   try {

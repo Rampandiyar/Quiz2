@@ -1,5 +1,5 @@
 import Category from '../Models/Category.js';
-import { AppError } from '../Utils/errorHandler.js';
+import AppError  from '../Utils/errorHandler.js';
 
 export const createCategory = async (req, res, next) => {
   try {

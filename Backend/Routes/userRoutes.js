@@ -18,7 +18,7 @@ import {
   deleteUser
 } from '../Controllers/userController.js';
 import { authenticate, authorize } from '../Middleware/authMiddleware.js';
-import upload from '../utils/fileUpload.js';
+import { upload } from '../Utils/fileUpload.js';
 
 const router = express.Router();
 

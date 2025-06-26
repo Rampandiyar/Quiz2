@@ -1,7 +1,7 @@
 import User from '../Models/User.js';
 import Admin from '../Models/Admin.js';
-import Role from '../Models/Role.js';
-import { AppError } from '../Utils/errorHandler.js';
+import Role from '../Models/Roles.js';
+import  AppError  from '../Utils/errorHandler.js';
 
 export const createAdmin = async (req, res, next) => {
   try {

@@ -1,17 +1,30 @@
-// config.js - Central configuration file
 export default {
+  env: process.env.NODE_ENV || 'development',
+  port: process.env.PORT || 3000,
   jwt: {
-    accessTokenSecret: process.env.ACCESS_TOKEN_SECRET || 'your_access_token_secret_32_characters_long_12345',
-    refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || 'your_refresh_token_secret_32_characters_long_67890',
-    verificationTokenSecret: process.env.VERIFICATION_TOKEN_SECRET || 'your_verification_token_secret_32_characters_long_abcde',
-    accessTokenExpiry: '15m',
-    refreshTokenExpiry: '7d',
-    verificationTokenExpiry: '24h'
+    accessTokenSecret: process.env.ACCESS_TOKEN_SECRET || 'default_access_token_secret',
+    refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || 'default_refresh_token_secret',
+    accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY || '15m',
+    refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY || '7d'
   },
-  cookieOptions: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  }
+  database: {
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/quiz-app',
+    options: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+      useFindAndModify: false
+    }
+  },
+  email: {
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    username: process.env.EMAIL_USERNAME,
+    password: process.env.EMAIL_PASSWORD
+  },
+  cloudinary: {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  },
+  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000'
 };

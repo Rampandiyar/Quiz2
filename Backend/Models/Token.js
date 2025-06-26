@@ -1,6 +1,8 @@
-export const TokenSchema = new Schema({
+import mongoose from 'mongoose';
+
+const TokenSchema = new mongoose.Schema({
   user: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId, // use fully-qualified path
     ref: 'User',
     required: true
   },
@@ -25,5 +27,6 @@ export const TokenSchema = new Schema({
   timestamps: true
 });
 
-// Add TTL index for automatic expiration
 TokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+export default mongoose.model('Token', TokenSchema);

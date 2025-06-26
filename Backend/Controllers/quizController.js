@@ -1,7 +1,7 @@
 import Quiz from '../Models/Quiz.js';
 import QuizSettings from '../Models/QuizSettings.js';
 import QuizAttempt from '../Models/QuizAttempt.js';
-import { AppError } from '../Utils/errorHandler.js';
+import AppError from '../Utils/errorHandler.js';
 
 export const createQuiz = async (req, res, next) => {
   try {

@@ -1,4 +1,8 @@
-export const AdminSchema = new Schema({
+import mongoose from 'mongoose';
+
+const { Schema } = mongoose; // ✅ Define Schema properly
+
+const AdminSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -21,3 +25,5 @@ export const AdminSchema = new Schema({
 }, {
   timestamps: true
 });
+
+export default mongoose.model('Admin', AdminSchema); // ✅ Export the model

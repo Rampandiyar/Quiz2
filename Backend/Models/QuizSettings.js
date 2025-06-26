@@ -1,4 +1,8 @@
-export const QuizSettingsSchema = new Schema({
+import mongoose from 'mongoose';
+
+const { Schema } = mongoose; // ✅ Define Schema
+
+const QuizSettingsSchema = new Schema({
   quiz: {
     type: Schema.Types.ObjectId,
     ref: 'Quiz',
@@ -29,8 +33,12 @@ export const QuizSettingsSchema = new Schema({
     min: 1,
     default: 1
   },
-  accessCode: String,
+  accessCode: {
+    type: String
+  },
   ipRestrictions: [String]
 }, {
   timestamps: true
 });
+
+export default mongoose.model('QuizSettings', QuizSettingsSchema); // ✅ Correct export

@@ -1,4 +1,8 @@
-export const CategorySchema = new Schema({
+import mongoose from 'mongoose';
+
+const { Schema } = mongoose; // ✅ Destructure Schema from mongoose
+
+const CategorySchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -8,7 +12,7 @@ export const CategorySchema = new Schema({
   description: String,
   parentCategory: {
     type: Schema.Types.ObjectId,
-    ref: 'Category'
+    ref: 'Category' // Self-referencing relationship
   },
   isActive: {
     type: Boolean,
@@ -17,3 +21,5 @@ export const CategorySchema = new Schema({
 }, {
   timestamps: true
 });
+
+export default mongoose.model('Category', CategorySchema); // ✅ Export model

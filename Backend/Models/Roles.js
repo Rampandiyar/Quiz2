@@ -1,4 +1,6 @@
-export const RoleSchema = new mongoose.Schema({
+import mongoose from 'mongoose';
+
+const RoleSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -20,3 +22,6 @@ export const RoleSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Export the model (not just the schema)
+export default mongoose.model('Role', RoleSchema);

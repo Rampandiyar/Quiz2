@@ -1,7 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import express from 'express';
 import authRoutes from './Routes/authRoutes.js';
 import userRoutes from './Routes/userRoutes.js';
 import quizRoutes from './Routes/quizRoutes.js';
@@ -22,7 +21,7 @@ router.use('/categories', categoryRoutes);
 router.use('/notifications', notificationRoutes);
 
 // ✅ Simple test route
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
     res.send('Backend is running ✅');
 });
 

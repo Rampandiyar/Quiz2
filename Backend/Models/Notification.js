@@ -1,4 +1,8 @@
-export const NotificationSchema = new Schema({
+import mongoose from 'mongoose';
+
+const { Schema } = mongoose; // ✅ Fix: define Schema
+
+const NotificationSchema = new Schema({
   recipient: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -21,17 +25,21 @@ export const NotificationSchema = new Schema({
   },
   relatedEntity: {
     type: Schema.Types.ObjectId,
-    refPath: 'relatedEntityModel'
+    refPath: 'relatedEntityModel' // ✅ Dynamic reference
   },
   relatedEntityModel: {
     type: String,
-    enum: ['Quiz', 'QuizAttempt', 'User']
+    enum: ['Quiz', 'QuizAttempt', 'User'] // ✅ Supports dynamic population
   },
   isRead: {
     type: Boolean,
     default: false
   },
-  readAt: Date
+  readAt: {
+    type: Date
+  }
 }, {
   timestamps: true
 });
+
+export default mongoose.model('Notification', NotificationSchema); // ✅ Export model
